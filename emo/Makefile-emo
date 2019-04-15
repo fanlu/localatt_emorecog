@@ -1,7 +1,7 @@
 
 
 all:
-KALDI_DIR=/Users/fanlu/workspace/mykaldi/
+
 include ${KALDI_DIR}/src/kaldi.mk
 
 BINFILES = emo
@@ -17,5 +17,7 @@ ADDLIBS = ${KALDI_DIR}/src/transform/kaldi-transform.a ${KALDI_DIR}/src/gmm/kald
           ${KALDI_DIR}/src/matrix/kaldi-matrix.a ${KALDI_DIR}/src/base/kaldi-base.a \
           ${KALDI_DIR}/src/feat/kaldi-feat.a ${KALDI_DIR}/src/ivector/kaldi-ivector.a \
           ${KALDI_DIR}/src/gmm/kaldi-gmm.a ${KALDI_DIR}/src/hmm/kaldi-hmm.a
+
+CXXFLAGS += -I${KALDI_DIR}/src
 
 include ${KALDI_DIR}/src/makefiles/default_rules.mk

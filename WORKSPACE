@@ -12,12 +12,12 @@ new_local_repository(
 
 new_local_repository(
     name = "kaldi",
-    path = "/Users/fanlu/workspace/",
+    path = "/Users/lonica/Documents/dev/workspace/",
     build_file = "mykaldi.BUILD",
 )
 
 new_local_repository(
     name = "torch",
-    path = "/Users/fanlu/workspace/",
+    path = "/Users/lonica/Documents/dev/workspace/",
     build_file = "torch.BUILD",
 )

@@ -14,8 +14,8 @@ cc_binary(
         # "-Wno-sign-compare -Wno-unused-local-typedefs",
         # "-DKALDI_DOUBLEPRECISION=0 -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -DHAVE_CLAPACK ",
         "-g",
-        "-Iexternal/kaldi/mykaldi/src",
-        "-Iexternal/kaldi/mykaldi/tools/openfst/include",
+        "-Iexternal/kaldi/kaldi/src",
+        "-Iexternal/kaldi/kaldi/tools/openfst/include",
         "-Iexternal/torch/libtorch/include",
         "-Iexternal/torch/mklml_mac_2019.0.3.20190220/include",
     ],
@@ -34,8 +34,8 @@ cc_binary(
         # "-Wno-sign-compare -Wno-unused-local-typedefs",
         # "-DKALDI_DOUBLEPRECISION=0 -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -DHAVE_CLAPACK ",
         "-g",
-        "-Iexternal/kaldi/mykaldi/src",
-        "-Iexternal/kaldi/mykaldi/tools/openfst/include",
+        "-Iexternal/kaldi/kaldi/src",
+        "-Iexternal/kaldi/kaldi/tools/openfst/include",
     ],
     linkopts = [
         "-lm",
@@ -43,4 +43,22 @@ cc_binary(
         "-ldl",
     ],
     deps = ["@kaldi//:mykaldi", "@kaldi//:openfst", "@mkl//:mkl"],
+)
+
+cc_binary(
+    name = "inference",
+    srcs = ["inference.cpp"],
+    copts = [
+        # "-Wno-sign-compare -Wno-unused-local-typedefs",
+        # "-DKALDI_DOUBLEPRECISION=0 -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -DHAVE_CLAPACK ",
+        "-g",
+        "-Iexternal/torch/libtorch/include",
+        "-Iexternal/torch/mklml_mac_2019.0.3.20190220/include",
+    ],
+    linkopts = [
+        "-lm",
+        "-lpthread",
+        "-ldl",
+    ],
+    deps = ["@mkl//:mkl", "@torch//:mklml", "@torch//:torch"],
 )

@@ -9,9 +9,9 @@ OPENFST_LIB_MAP = [
 [cc_import(
     name = "openfst-" + lib,
     hdrs =glob([
-        "mykaldi/tools/openfst/include/**/*.h",
+        "kaldi/tools/openfst/include/**/*.h",
     ]),
-    static_library = "mykaldi/tools/openfst/lib/%s.a" % lib,
+    static_library = "kaldi/tools/openfst/lib/%s.a" % lib,
     # shared_library = ...
     visibility = ["//visibility:public"],
  ) for lib in OPENFST_LIB_MAP]
@@ -20,7 +20,7 @@ cc_library(
   name = "openfst",
   hdrs = glob(
     include = [
-        "mykaldi/tools/openfst/include/**/*.h",
+        "kaldi/tools/openfst/include/**/*.h",
     ],
   ),
   deps = [ ":openfst-%s" % lib for lib in OPENFST_LIB_MAP ],
@@ -30,9 +30,9 @@ cc_library(
 [cc_import(
     name = "shared-openfst-" + lib,
     hdrs =glob([
-        "mykaldi/tools/openfst/include/**/*.h",
+        "kaldi/tools/openfst/include/**/*.h",
     ]),
-    shared_library = "mykaldi/tools/openfst/lib/%s.so" % lib,
+    shared_library = "kaldi/tools/openfst/lib/%s.so" % lib,
     # shared_library = ...
     visibility = ["//visibility:public"],
  ) for lib in OPENFST_LIB_MAP]
@@ -41,7 +41,7 @@ cc_library(
   name = "openfst-shared",
   hdrs = glob(
     include = [
-        "mykaldi/tools/openfst/include/**/*.h",
+        "kaldi/tools/openfst/include/**/*.h",
     ],
   ),
   deps = [ ":shared-openfst-%s" % lib for lib in OPENFST_LIB_MAP ],
@@ -70,8 +70,8 @@ KALDI_LIB_MAP = [
 
 [cc_import(
     name = "kaldi-" + lib,
-    hdrs = glob([ "mykaldi/src/%s/*.h" % lib ]),
-    static_library = "mykaldi/src/%s/kaldi-%s.a" % (lib, lib),
+    hdrs = glob([ "kaldi/src/%s/*.h" % lib ]),
+    static_library = "kaldi/src/%s/kaldi-%s.a" % (lib, lib),
     # shared_library = ...
     visibility = ["//visibility:public"],
  ) for lib in KALDI_LIB_MAP]
@@ -80,7 +80,7 @@ cc_library(
   name = "mykaldi",
   hdrs = glob(
     include = [
-        "mykaldi/src/*/*.h",
+        "kaldi/src/*/*.h",
     ],
   ),
   # copts=["-Iexternal/mykaldi/include"],
