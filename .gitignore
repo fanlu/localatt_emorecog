@@ -10,7 +10,6 @@ iemocap/sess*
 *.csv
 *.swp
 run_run.py*
-emo
 bazel*
 build1
 .vscode
