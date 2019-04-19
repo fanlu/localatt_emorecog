@@ -13,3 +13,5 @@ run_run.py*
 bazel*
 build1
 .vscode
+emo/emo
+emo/emo.dSYM

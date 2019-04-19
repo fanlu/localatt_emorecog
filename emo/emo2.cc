@@ -24,6 +24,13 @@ int main(int argc, const char* argv[]) {
     exit(1);
   }
 
+  // Deserialize the ScriptModule from a file using torch::jit::load().
+  std::shared_ptr<torch::jit::script::Module> module =
+      torch::jit::load(po.GetArg(1));
+
+  assert(module != nullptr);
+  std::cout << "ok\n";
+
   Mfcc mfcc(mfcc_opts);
 
   std::cout << "script module:" << po.GetArg(1) << std::endl;
@@ -66,31 +73,39 @@ int main(int argc, const char* argv[]) {
       KALDI_WARN << "Failed to compute features for utterance " << utt;
       continue;
     }
+
+    std::vector<torch::jit::IValue> inputs;
+    std::vector<float> f = {1.0, 2.0, 3.0, 4.0};
     if (subtract_mean) {
       Vector<BaseFloat> mean(features.NumCols());
       mean.AddRowSumMat(1.0, features);
       mean.Scale(1.0 / features.NumRows());
-      for (int32 i = 0; i < features.NumRows(); i++)
+
+      for (int32 i = 0; i < features.NumRows(); i++) {
         features.Row(i).AddVec(-1.0, mean);
+      }
     }
+
+    // at::ArrayRef sizes({1, 120, 13});
     std::cout << features;
+    // inputs.push_back(torch::ones({1, 120, 13}));
+    std::cout << "========" << features.Stride() << std::endl;
+    at::Tensor input = torch::from_blob(
+        features.Data(), {1, features.NumRows(), features.NumCols()},
+        {features.NumRows() * features.Stride(), features.Stride(), 1});
+    inputs.push_back(input);
+    std::cout << input.sizes() << std::endl;
+
+    std::vector<int> ls = {features.NumRows()};
+    inputs.push_back(torch::tensor(ls));
+
+    // Execute the model and turn its output into a tensor.
+    // at::Tensor output = module->forward(inputs, lens).toTensor();
+    at::Tensor output = module->forward(inputs).toTensor();
+    std::cout << "max index:" << output.argmax(1) << std::endl;
+    // auto max_result = output.max(1, true);
+    // auto max_index = std::get<1>(max_result).item<float>();
+    // std::cout << "max index2:" << max_index << std::endl;
+    std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/5) << '\n';
   }
-
-  // Deserialize the ScriptModule from a file using torch::jit::load().
-  std::shared_ptr<torch::jit::script::Module> module =
-      torch::jit::load(po.GetArg(1));
-
-  assert(module != nullptr);
-  std::cout << "ok\n";
-
-  std::vector<torch::jit::IValue> inputs;
-  inputs.push_back(torch::ones({1, 120, 13}));
-  std::vector<int> ls = {120};
-  inputs.push_back(torch::tensor(ls));
-
-  // Execute the model and turn its output into a tensor.
-  // at::Tensor output = module->forward(inputs, lens).toTensor();
-  at::Tensor output = module->forward(inputs).toTensor();
-
-  std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/5) << '\n';
 }
