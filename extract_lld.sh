@@ -19,7 +19,7 @@ echo ""
 echo "<$wavhtk>"
 head -2 $wavhtk
 
-cat $wavhtk | parallel --colsep ' ' $osmdir/SMILExtract -C "$conf" -I {1} -O {2}
+cat $wavhtk | parallel --colsep ' ' $osmdir/bin/linux_x64_standalone_libstdc6/SMILExtract -C "$conf" -I {1} -O {2}
 
 rm $wav
 rm $wavhtk

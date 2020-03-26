@@ -10,8 +10,8 @@ from torch.nn.utils.rnn import pad_packed_sequence
 
 def init_linear(m):
     if type(m) == nn.Linear:
-        tc.nn.init.xavier_normal(m.weight)
-        nn.init.constant(m.bias, 0)
+        nn.init.xavier_normal_(m.weight)
+        nn.init.constant_(m.bias, 0)
 
 
 # model = localatt(nin, nhid, ncell, nout)
@@ -26,7 +26,7 @@ class localatt(nn.Module):
         self.do2 = nn.Dropout()
 
 
-        self.blstm = tc.nn.LSTM(nhid, ncell, 1, 
+        self.blstm = tc.nn.LSTM(nhid, ncell, 1,
                 batch_first=True,
                 dropout=0.5,
                 bias=True,
@@ -39,13 +39,13 @@ class localatt(nn.Module):
 
         self.apply(init_linear)
 
-    def forward(self, inputs_lens_tuple):
+    def forward(self, inputs, lens):
 
-        inputs = Variable(inputs_lens_tuple[0])
+        #inputs = Variable(inputs_lens_tuple[0])
         batch_size = inputs.size()[0]
-        lens = list(inputs_lens_tuple[1])
+        #lens = list(inputs_lens_tuple[1])
 
-        indep_feats = inputs.view(-1, self.featdim) # reshape(batch) 
+        indep_feats = inputs.view(-1, self.featdim) # reshape(batch)
 
         indep_feats = F.relu(self.fc1(indep_feats))
 
@@ -53,12 +53,33 @@ class localatt(nn.Module):
 
         batched_feats = indep_feats.view(batch_size, -1, self.nhid)
 
-        packed = pack_padded_sequence(batched_feats, lens, batch_first=True) 
+        packed = pack_padded_sequence(batched_feats, lens, batch_first=True)
 
         output, hn = self.blstm(packed)
-
+        #print("lstm result shape:", output[0].shape)
         padded, lens = pad_packed_sequence(output, batch_first=True, padding_value=0.0)
+        batch_size, seq_length, dim = padded.shape # bs * seq_l * dim
+        #e = tc.matmul(padded, self.u)
+        output = padded.contiguous().view(batch_size*seq_length, dim)
+        #print("u shape:", self.u.unsqueeze(0).shape)
+        output = F.linear(output, self.u.unsqueeze(0)).view(batch_size, seq_length)
+        #print("alpha shape pre", output.shape)
+        alpha = F.softmax(output, dim=-1)
+        #print("alpha shape", alpha.shape)
+        #m = tc.matmul(alpha, padded)
+        #print("m left shape", alpha.unsqueeze(1).shape, "left shape", padded.shape)
+        m = tc.bmm(alpha.unsqueeze(1), padded).squeeze(1)
+        #print("m shape", m.shape)
+        j = self.fc3(m)
+        #print("result shape", j.shape)
+        return F.softmax(j, dim=-1)
 
-        alpha = F.softmax(tc.matmul(padded, self.u))
-
-        return F.softmax((self.fc3(tc.sum(tc.matmul(alpha, padded), dim=1))))
+if __name__ == "__main__":
+    example = tc.rand(4, 12, 13)
+    model = localatt(13, 512, 128, 2)
+    model.load_state_dict(tc.load('../kefu/exp_20190411/model.pth', map_location='cpu'))
+    model.eval()
+    print(model)
+    output = model(example, tc.tensor([12]*4))
+    output_1 = model(example[:2], tc.tensor([12]*2))
+    print(tc.allclose(output[:2], output_1))

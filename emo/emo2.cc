@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <memory>
+#include <chrono>
 #include "base/kaldi-common.h"
 #include "feat/feature-mfcc.h"
 #include "feat/wave-reader.h"
@@ -12,23 +13,32 @@ int main(int argc, const char* argv[]) {
   const char* usage =
       "Calculate emotion by pytorch model.\n"
       "Usage:  emo2 [options...] <path-to-exported-script-module> "
-      "<wav-rspecifier>\n";
+      "<wav-rspecifier> <flag-rspecifier>\n";
   ParseOptions po(usage);
 
   MfccOptions mfcc_opts;
   mfcc_opts.Register(&po);
 
   po.Read(argc, argv);
-  if (po.NumArgs() != 2) {
+  if (po.NumArgs() != 3) {
     po.PrintUsage();
     exit(1);
   }
 
   // Deserialize the ScriptModule from a file using torch::jit::load().
-  std::shared_ptr<torch::jit::script::Module> module =
-      torch::jit::load(po.GetArg(1));
-
-  assert(module != nullptr);
+  //std::shared_ptr<torch::jit::script::Module> module =
+  //    torch::jit::load(po.GetArg(1));
+  // module->to(torch::kHalf);
+  torch::jit::script::Module module;
+  try {
+    // Deserialize the ScriptModule from a file using torch::jit::load().
+    module = torch::jit::load(po.GetArg(1));
+  }
+  catch (const c10::Error& e) {
+    std::cerr << "error loading the model\n";
+    return -1;
+  }
+  //assert(module != nullptr);
   std::cout << "ok\n";
 
   Mfcc mfcc(mfcc_opts);
@@ -37,6 +47,9 @@ int main(int argc, const char* argv[]) {
   std::string wav_rspecifier = po.GetArg(2);
   std::cout << "wav_rspecifier:" << wav_rspecifier << std::endl;
   SequentialTableReader<WaveHolder> reader(wav_rspecifier);
+  std::string flag_wspecifier = po.GetArg(3);
+  BaseFloatWriter flag_writer(flag_wspecifier);
+  std::cout << "save to file:" << flag_wspecifier << std::endl;
 
   bool subtract_mean = true;
   int32 channel = -1;
@@ -75,7 +88,6 @@ int main(int argc, const char* argv[]) {
     }
 
     std::vector<torch::jit::IValue> inputs;
-    std::vector<float> f = {1.0, 2.0, 3.0, 4.0};
     if (subtract_mean) {
       Vector<BaseFloat> mean(features.NumCols());
       mean.AddRowSumMat(1.0, features);
@@ -87,25 +99,30 @@ int main(int argc, const char* argv[]) {
     }
 
     // at::ArrayRef sizes({1, 120, 13});
-    std::cout << features;
+    // std::cout << features;
     // inputs.push_back(torch::ones({1, 120, 13}));
-    std::cout << "========" << features.Stride() << std::endl;
-    at::Tensor input = torch::from_blob(
+    // std::cout << "========" << features.Stride() << std::endl;
+    torch::Tensor input = torch::from_blob(
         features.Data(), {1, features.NumRows(), features.NumCols()},
         {features.NumRows() * features.Stride(), features.Stride(), 1});
+    input.to(torch::kHalf);
     inputs.push_back(input);
-    std::cout << input.sizes() << std::endl;
+    // std::cout << input.sizes() << std::endl;
 
     std::vector<int> ls = {features.NumRows()};
-    inputs.push_back(torch::tensor(ls));
+    inputs.push_back(torch::tensor(ls).to(torch::kHalf));
 
     // Execute the model and turn its output into a tensor.
     // at::Tensor output = module->forward(inputs, lens).toTensor();
-    at::Tensor output = module->forward(inputs).toTensor();
-    std::cout << "max index:" << output.argmax(1) << std::endl;
-    // auto max_result = output.max(1, true);
-    // auto max_index = std::get<1>(max_result).item<float>();
+    auto start = std::chrono::high_resolution_clock::now();
+    torch::Tensor output = module.forward(inputs).toTensor();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "max index:" << output.argmax(1).item<int64_t>() << std::endl;
+    std::cout << "input shape:" << input.sizes() << ", C++ Operation Time(s) " << std::chrono::duration<double>(end - start).count() << "s" << std::endl;
+    auto max_result = output.max(1, true);
+    auto max_index = std::get<1>(max_result).item<float>();
     // std::cout << "max index2:" << max_index << std::endl;
-    std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/5) << '\n';
+    // std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/5) << '\n';
+    flag_writer.Write(utt, max_index);
   }
 }

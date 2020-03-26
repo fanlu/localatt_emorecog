@@ -17,12 +17,12 @@ featdim=32
 nhid=512
 ncell=128
 
-# 
+#
 
 os.system('mkdir -p '+exp)
 
 param = { 'dataset':dataset,
-          'fulldata':'iemocap/utt_lld.pk.zero_mean.pk',
+          'fulldata':'king601_8k/utt_lld.pk.zero_mean.pk',
             'lr':lr,
             'ephs':ephs,
             'bsz':bsz,

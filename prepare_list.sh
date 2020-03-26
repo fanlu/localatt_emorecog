@@ -26,7 +26,7 @@ head -2 $lldhtk
 echo ""
 echo "done."
 
-rm $utt
+#rm $utt
 
 
 

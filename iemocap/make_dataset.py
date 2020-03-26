@@ -7,7 +7,7 @@ import json as js
 import numpy as np
 import pickle as pk
 
-csv = sys.argv[1] 
+csv = sys.argv[1]
 utt_lld_pk = sys.argv[2]
 dataset = sys.argv[3]
 
@@ -17,9 +17,9 @@ devfrac=0.2
 session=1
 featdim=32
 
-# make 
+# make
 
-full = pd.read_csv(csv)
+full = pd.read_csv(csv, dtype=str)
 print(full.head())
 #print(full.columns)
 #print(set(full.loc[:,'gender']))
@@ -41,7 +41,8 @@ label_idx_dict = {label:i for i, label in enumerate(label_set)}
 _eval = full.loc[full.loc[:,'session'].isin([session])]
 _traindev = full.loc[~full.loc[:,'session'].isin([session])]
 
-_dev = pd.concat([_traindev.loc[_traindev.loc[:,'emotion'] == 'N'].sample(frac=devfrac),
+_dev = pd.concat([
+    #_traindev.loc[_traindev.loc[:,'emotion'] == 'N'].sample(frac=devfrac),
     _traindev.loc[_traindev.loc[:,'emotion'] == 'A'].sample(frac=devfrac),
     _traindev.loc[_traindev.loc[:,'emotion'] == 'S'].sample(frac=devfrac),
     _traindev.loc[_traindev.loc[:,'emotion'] == 'H'].sample(frac=devfrac)],
@@ -66,11 +67,11 @@ train_labels = [0] * len(_train)
 dev_labels = [0] * len(_dev)
 eval_labels = [0] * len(_eval)
 
-
+import pdb;pdb.set_trace()
 for i, irow in enumerate(_train.iterrows()):
     _, row = irow
     train_labels[i] = label_idx_dict[row['emotion']]
- 
+
     train_mats[i] = utt_lld[row['utterance']]
 
 for i, irow in enumerate(_dev.iterrows()):
@@ -81,7 +82,7 @@ for i, irow in enumerate(_eval.iterrows()):
     _, row = irow
     eval_labels[i] = label_idx_dict[row['emotion']]
 
-# zero mean 
+# zero mean
 
 train_utt_means = np.ndarray(shape=(len(train_mats),featdim))
 

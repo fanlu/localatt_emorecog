@@ -7,17 +7,17 @@ workspace(name = "jdemo")
 new_local_repository(
     name = "mkl",
     path = "/opt/",
-    build_file = "mkl.BUILD",
+    build_file = "mkl_linux.BUILD",
 )
 
 new_local_repository(
     name = "kaldi",
-    path = "/Users/lonica/Documents/dev/workspace/",
+    path = "/mnt/cephfs2/asr/users/fanlu/",
     build_file = "mykaldi.BUILD",
 )
 
 new_local_repository(
     name = "torch",
-    path = "/Users/lonica/Documents/dev/workspace/",
-    build_file = "torch.BUILD",
+    path = "/mnt/cephfs2/asr/users/fanlu/",
+    build_file = "torch_linux.BUILD",
 )

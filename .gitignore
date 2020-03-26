@@ -9,9 +9,17 @@ iemocap/sess*
 *.list
 *.csv
 *.swp
+*.pth
+*.log
+iemocap/emotion_data/
+kefu/
 run_run.py*
 bazel*
 build1
 .vscode
 emo/emo
 emo/emo.dSYM
+emo/build*
+tmpdir
+data
+exp

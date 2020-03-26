@@ -53,12 +53,13 @@ cc_binary(
         # "-DKALDI_DOUBLEPRECISION=0 -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -DHAVE_CLAPACK ",
         "-g",
         "-Iexternal/torch/libtorch/include",
-        "-Iexternal/torch/mklml_mac_2019.0.3.20190220/include",
+        #"-Iexternal/torch/mklml_mac_2019.0.3.20190220/include",
     ],
     linkopts = [
         "-lm",
         "-lpthread",
         "-ldl",
     ],
-    deps = ["@mkl//:mkl", "@torch//:mklml", "@torch//:torch"],
+    deps = ["@torch//:libgomp", "@torch//:libc10", "@torch//:libcaffe2", "@torch//:torch"],
+    linkstatic = False,
 )
